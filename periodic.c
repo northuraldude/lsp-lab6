@@ -46,7 +46,7 @@ int main(int argc, char const *argv[])
     //Очистка всей структуры нулями во избежание неопределённого поведения
     memset(&act, 0, sizeof(act));
     //Указываем на функцию новой обработки сигнала
-    act.sa_sigaction = timer_handler;
+    act.sa_handler = timer_handler;
     //Указываем необходимость блокировки сигнала SIGSTP (терминальная остановка, Ctrl+Z)
     sigemptyset(&act.sa_mask);
     sigaddset(&act.sa_mask, SIGTSTP); 
@@ -93,10 +93,7 @@ int main(int argc, char const *argv[])
 /**
  * Функция выполняет обработку сигнала, порождает поток, который выводит информацию о себе
  * 
- * Принимает:
- *   - номер сигнала;
- *   - указатель на структуру с подробной информацией о сигнале;
- *   - контекст
+ * Принимает: номер сигнала
  */
 void timer_handler(int signum)
 {
