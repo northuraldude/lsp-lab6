@@ -50,3 +50,8 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+build
+logs
+cron_config.txt
+logs/cron_log.txt
