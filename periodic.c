@@ -16,7 +16,7 @@
 #include <errno.h>
 
 //Количество совершённых итераций порождения дочерних процессов
-int iterations = 0;
+int iterations;
 
 void timer_handler(int signum);
 
@@ -42,7 +42,7 @@ int main(int argc, char const *argv[])
         fprintf(stderr, "Неверное количество параметров для запуска программы!\n");
         exit(1);
     }
-    
+
     //Очистка всей структуры нулями во избежание неопределённого поведения
     memset(&act, 0, sizeof(act));
     //Указываем на функцию новой обработки сигнала
@@ -51,12 +51,6 @@ int main(int argc, char const *argv[])
     sigemptyset(&act.sa_mask);
     sigaddset(&act.sa_mask, SIGTSTP); 
     sigprocmask(SIG_BLOCK, &act.sa_mask, NULL);
-    //Установка нового обработчика для сигнала SIGVTALRM (сигнал об окончании таймера времени процесса)
-    if (sigaction(SIGVTALRM, &act, NULL) == -1)
-    {
-        fprintf(stderr, "Не удалось установить обработчик сигнала!\n");
-        return errno;
-    }
     
     //Время до начала запуска интервального таймера
     timer.it_value.tv_sec = 3;
@@ -64,28 +58,32 @@ int main(int argc, char const *argv[])
     //Период дальнейшего запуска интервального таймера
     timer.it_interval.tv_sec = atoi(argv[1]);
     timer.it_interval.tv_usec = 0;
-    //Установка таймера ITIMER_VIRTUAL для подсчёта времени работы непосредственно процесса
-    if (setitimer(ITIMER_VIRTUAL, &timer, NULL) == -1)
+    //Установка таймера ITIMER_REAL для подсчёта времени работы
+    if (setitimer(ITIMER_REAL, &timer, NULL) == -1)
     {
         fprintf(stderr, "Не удалось установить интервальный таймер!\n");
         return errno;
     }
 
-    //Цикл ожидания окончания итераций запуска
-    while (1)
+    //Установка нового обработчика для сигнала SIGVTALRM (сигнал об окончании таймера времени процесса)
+    if (sigaction(SIGALRM, &act, NULL) == -1)
     {
-        //Завершение работы при достижении заданного количества итераций запуска
-        if (iterations >= atoi(argv[2]))
-        {
-            //Получаем текущее системное время
-            time(&stime);
-            //Преобразовываем в текущее локальное время
-            ltime = localtime(&stime);
-            printf("Программа полностью завершила работу.\nВремя завершения: %s\n", asctime(ltime));
-            break;
-        }
-        
+        fprintf(stderr, "Не удалось установить обработчик сигнала!\n");
+        return errno;
     }
+
+    //Цикл ожидания окончания итераций запуска
+    for(iterations = 0; iterations < atoi(argv[2]); iterations++)
+    {
+        pause();
+    }
+    
+    //Завершение работы при достижении заданного количества итераций запуска
+    //Получаем текущее системное время
+    time(&stime);
+    //Преобразовываем в текущее локальное время
+    ltime = localtime(&stime);
+    printf("Программа полностью завершила работу.\nВремя завершения: %s\n", asctime(ltime));
 
     return 0;
 }
@@ -104,7 +102,7 @@ void timer_handler(int signum)
 
     //Увеличиваем счётчик итераций запуска
     printf("------------------------------\n");
-    printf("Получен сигнал SIGVTALRM интервального таймера. Итерация запуска: %d\n", iterations++);
+    printf("Получен сигнал SIGVTALRM интервального таймера. Итерация запуска: %d\n", iterations);
     
     //Создаём дочерний процесс
     if ((pid = fork()) == 0)
