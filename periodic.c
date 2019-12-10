@@ -65,7 +65,7 @@ int main(int argc, char const *argv[])
         return errno;
     }
 
-    //Установка нового обработчика для сигнала SIGVTALRM (сигнал об окончании таймера времени процесса)
+    //Установка нового обработчика для сигнала SIGALRM (сигнал об окончании таймера времени процесса)
     if (sigaction(SIGALRM, &act, NULL) == -1)
     {
         fprintf(stderr, "Не удалось установить обработчик сигнала!\n");
@@ -73,7 +73,7 @@ int main(int argc, char const *argv[])
     }
 
     //Цикл ожидания окончания итераций запуска
-    for(iterations = 0; iterations < atoi(argv[2]); iterations++)
+    for (iterations = 0; iterations < atoi(argv[2]); iterations++)
     {
         pause();
     }
@@ -102,7 +102,7 @@ void timer_handler(int signum)
 
     //Увеличиваем счётчик итераций запуска
     printf("------------------------------\n");
-    printf("Получен сигнал SIGVTALRM интервального таймера. Итерация запуска: %d\n", iterations);
+    printf("Получен сигнал SIGALRM интервального таймера. Итерация запуска: %d\n", iterations);
     
     //Создаём дочерний процесс
     if ((pid = fork()) == 0)
